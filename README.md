@@ -1,0 +1,2 @@
+# Update-Inverter-Quantity-Trigger
+This Salesforce trigger looks at the Opportunity Products and updates the quantity of one product based on the quantity of another. In this case, we have "Panels" and "Inverters". The quantity of Panels are manually updated, while the quantity of Inverter are automatically updated via the trigger. This means the User does not have to worry about handling the conversion formula for the appropriate amount of Inverters.

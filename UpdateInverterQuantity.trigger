@@ -1,11 +1,11 @@
 trigger UpdateInverterQuantity on OpportunityLineItem (before insert, before update) {
-    Map<Id, Product2> panelProdMap = new Map<Id, Product2>([ // create map for panel products
+    Map<Id, Product2> panelProdMap = new Map<Id, Product2>([
         SELECT Id, Name 
           FROM Product2
          WHERE Name = '60 MBLK Home PV' 
             OR Name = '60 M-HBLK'
     ]); 
-    Map<Id, Product2> invProdMap = new Map<Id, Product2>([ // create map for inverters products
+    Map<Id, Product2> invProdMap = new Map<Id, Product2>([
         SELECT Id, Name 
           FROM Product2
          WHERE Name = 'QS1' 
@@ -13,61 +13,48 @@ trigger UpdateInverterQuantity on OpportunityLineItem (before insert, before upd
     ]); 
 
     list<String> oppIds = new List<String>();
-    for (OpportunityLineItem oli : Trigger.new ) { // loop through olis entering trigger, add their id's to a list oppIds
+    for (OpportunityLineItem oli : Trigger.new ) {
         oppIds.add(oli.OpportunityId);
     }
-    list<OpportunityLineItem> panelOLIs = new list<OpportunityLineItem>(); 
-    panelOLIs = [ // get all current panels in Opportunity Products
+    list<OpportunityLineItem> panelOLIs = new list<OpportunityLineItem>();
+    panelOLIs = [
         SELECT Id, OpportunityId, Quantity, Product2.Name 
           FROM OpportunityLineItem
          WHERE OpportunityId IN :oppIds
            AND Product2Id IN :panelProdMap.keySet()
     ];
     Map<Id,OpportunityLineItem> panelOLImap = new Map<Id, OpportunityLineItem>();
-    for (OpportunityLineItem oli : panelOLIs) { // loop through all current panels and add them to a map
+    for (OpportunityLineItem oli : panelOLIs) {
         panelOLImap.put(oli.opportunityId, oli);
     }
     list<OpportunityLineItem> invOLIs = new list<OpportunityLineItem>();
-    invOLIs = [  // get all current panels in Opportunity Products
+    invOLIs = [
         SELECT Id, OpportunityId, Quantity, Product2.Name  
           FROM OpportunityLineItem
          WHERE OpportunityId IN :oppIds
            AND Product2Id IN :invProdMap.keySet()
     ];
     Map<Id,OpportunityLineItem> invOLImap = new Map<Id, OpportunityLineItem>();
-    for (OpportunityLineItem oli : invOLIs) { // loop through all current inverters and add them to a map
+    for (OpportunityLineItem oli : invOLIs) {
         invOLImap.put(oli.opportunityId, oli);
     }
 
-    Integer divisor = 1; // initiate divisor for inverter quantity
-    Integer panelQty; // initiate panel quantitfy
-    OpportunityLineItem tempOLI; // initiate temporary oli
-    List<OpportunityLineItem> toUpdate = new List<OpportunityLineItem>(); // initiate list for final update
+    Integer divisor;
+    Integer panelQty;
+    OpportunityLineItem tempOLI;
+    List<OpportunityLineItem> toUpdate = new List<OpportunityLineItem>();
 
     for (OpportunityLineItem oli : Trigger.new ) {
         System.debug('DEBUG - FOR LOOP');
-        // Inverters inserted first
-        if (trigger.isInsert && panelProdMap.ContainsKey(oli.Product2Id) && !invOLIs.isEmpty() ) {
-            System.debug('DEBUG - inserting a panel with inverter already existing');
-            if (invOLIs.get(0).Product2.Name == 'QS1' ) {
-                divisor = 4;
-            } else if (invOLIs.get(0).Product2.Name == 'YC600' ) {
-                divisor = 2;
-            }
-            Decimal inverterQuantity = (oli.Quantity / divisor); 
-            inverterQuantity = inverterQuantity.round(System.RoundingMode.CEILING); 
-            invOLIs.get(0).Quantity = inverterQuantity;
-            System.debug('DEBUG - Inverter Quantity = ' + inverterQuantity);
-            update invOLIs;
-        } else {
-        // end Inverter inserted first
-        if (trigger.isUpdate && panelProdMap.ContainsKey(oli.Product2Id )) {   // inserting/updating a panel oli
+        if (panelProdMap.ContainsKey(oli.Product2Id )) {   //inserting/updating a panel oli
             System.debug('DEBUG - insert/update Panel');
-if (invOLIs.get(0).Product2.Name == 'QS1' ) {
+            if ( panelProdMap.get(oli.Product2Id).Name == '60 M-HBLK' ) {
                 divisor = 4;
-            } else if (invOLIs.get(0).Product2.Name == 'YC600' ) {
+            } else if ( panelProdMap.get(oli.Product2Id).Name == '60 MBLK Home PV' ) {
                 divisor = 2;
-            } 
+            } else {
+                divisor = 1;
+            }
             if (invOLImap.ContainsKey(oli.OpportunityId )) {
                 System.debug('DEBUG - found previous invertors');
                 tempOLI = invOLImap.get(oli.OpportunityId );     //we have a matching panel OLI
@@ -89,7 +76,9 @@ if (invOLIs.get(0).Product2.Name == 'QS1' ) {
                     divisor = 4;
                 } else if ( invProdMap.get(oli.Product2Id).Name == 'YC600' ) {
                     divisor = 2;
-                } 
+                } else {
+                    divisor = 1;
+                }
                 if (panelOLImap.ContainsKey(oli.OpportunityId )) {
                     System.debug('DEBUG - found previous panels');
                     tempOLI = panelOLImap.get(oli.OpportunityId );     //we have a matching panel OLI
@@ -101,8 +90,7 @@ if (invOLIs.get(0).Product2.Name == 'QS1' ) {
                 }
             }
         }
-      } 
-    }
+    } 
     if (toUpdate.size() > 0  ) {
         update toUpdate;
     }

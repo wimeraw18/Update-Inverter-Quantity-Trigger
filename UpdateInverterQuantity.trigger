@@ -2,8 +2,9 @@ trigger UpdateInverterQuantity on OpportunityLineItem (before insert, before upd
     Map<Id, Product2> panelProdMap = new Map<Id, Product2>([
         SELECT Id, Name 
           FROM Product2
-         WHERE Name = '60 MBLK Home PV' 
+         WHERE (Name = '60 MBLK Home PV' 
             OR Name = '60 M-HBLK'
+            OR Name = 'SN310M')
     ]); 
     Map<Id, Product2> invProdMap = new Map<Id, Product2>([
         SELECT Id, Name 
@@ -48,7 +49,7 @@ trigger UpdateInverterQuantity on OpportunityLineItem (before insert, before upd
         System.debug('DEBUG - FOR LOOP');
         if (panelProdMap.ContainsKey(oli.Product2Id )) {   //inserting/updating a panel oli
             System.debug('DEBUG - insert/update Panel');
-            if ( panelProdMap.get(oli.Product2Id).Name == '60 M-HBLK' ) {
+            if ( panelProdMap.get(oli.Product2Id).Name == '60 M-HBLK' || panelProdMap.get(oli.Product2Id).Name == 'SN310M') {
                 divisor = 4;
             } else if ( panelProdMap.get(oli.Product2Id).Name == '60 MBLK Home PV' ) {
                 divisor = 2;

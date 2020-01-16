@@ -55,7 +55,7 @@ private class UpdateInverterQuantityTest {
             Product2Id       = panelEntry.Id,
             TotalPrice       = 20 * panelEntry.UnitPrice
         );
-//        insert oli;
+        // insert oli;
         items.add(oli);
         System.debug('TEST DEBUG - Inserted panel oli');
 
@@ -66,7 +66,7 @@ private class UpdateInverterQuantityTest {
             Product2Id = inverterEntry.Id,
             TotalPrice       = 20 * inverterEntry.UnitPrice
         );
-//        insert oli2;
+        // insert oli2;
         items.add(oli2);
         insert items;
         System.debug('TEST DEBUG - Inserted inverter oli');
@@ -552,6 +552,152 @@ private class UpdateInverterQuantityTest {
         Product2 panel = new Product2(
             Name        = 'SN310M',
             ProductCode = 'SN310M',
+            isActive    = true
+        );
+        insert panel;
+
+        //Create inverter
+        Product2 firstInverter = new Product2(
+            Name        = 'YC600',
+            ProductCode = 'YC600',
+            isActive    = true
+        );
+        insert firstInverter;
+
+        //Create pricebook entry for panel
+        PricebookEntry  panelEntry = new PricebookEntry(
+            Pricebook2Id = pricebookId,
+            Product2Id   = panel.Id,
+            UnitPrice    = 100.00,
+            IsActive     = true
+        );
+        insert  panelEntry;
+
+        //Create pricebook entry for inverter
+        PricebookEntry inverterEntry = new PricebookEntry(
+            Pricebook2Id = pricebookId,
+            Product2Id   = firstInverter.Id,
+            UnitPrice    = 100.00,
+            IsActive     = true
+        );
+        insert inverterEntry;
+
+        //create opportunity line item.
+        OpportunityLineItem oli = new OpportunityLineItem(
+            OpportunityId    = myOpp.Id,
+            Quantity         = 20,
+            Product2Id = panel.Id,
+            TotalPrice       = 20 * panelEntry.UnitPrice
+        );
+        insert oli;
+
+        //create opportunity line item.
+        OpportunityLineItem oli2 = new OpportunityLineItem(
+            OpportunityId    = myOpp.Id,
+            Quantity         = 20,
+            Product2Id       = firstInverter.Id,
+            TotalPrice       = 20 * inverterEntry.UnitPrice
+        );
+        insert oli2;
+
+        OpportunityLineItem inverter = [
+            SELECT Quantity
+                FROM OpportunityLineItem
+                WHERE OpportunityId = :oli.OpportunityId
+                AND Id = :oli2.Id
+                LIMIT 1
+        ];
+
+        System.assertEquals(10, inverter.Quantity);
+    }
+    @isTest static void addInverterOneWithPanelFour() {
+        // create an opportunity
+        Opportunity myOpp  = new Opportunity();
+        myOpp.Name         = 'Test';
+        myOpp.StageName    = 'Closed Won';
+        myOpp.CloseDate    = Date.today();
+        myOpp.Pricebook2Id = Test.getStandardPricebookId();
+        insert myOpp;
+
+        Id pricebookId = Test.getStandardPricebookId();
+
+        //Create panel
+        Product2 panel = new Product2(
+            Name        = 'Eagle 60HM G2',
+            ProductCode = 'Eagle 60HM G2',
+            isActive    = true
+        );
+        insert panel;
+
+        //Create inverter
+        Product2 firstInverter = new Product2(
+            Name        = 'QS1',
+            ProductCode = 'QS1',
+            isActive    = true
+        );
+        insert firstInverter;
+
+        //Create pricebook entry for panel
+        PricebookEntry  panelEntry = new PricebookEntry(
+            Pricebook2Id = pricebookId,
+            Product2Id   = panel.Id,
+            UnitPrice    = 100.00,
+            IsActive     = true
+        );
+        insert  panelEntry;
+
+        //Create pricebook entry for inverter
+        PricebookEntry inverterEntry = new PricebookEntry(
+            Pricebook2Id = pricebookId,
+            Product2Id   = firstInverter.Id,
+            UnitPrice    = 100.00,
+            IsActive     = true
+        );
+        insert inverterEntry;
+
+        //create opportunity line item.
+        OpportunityLineItem oli = new OpportunityLineItem(
+            OpportunityId    = myOpp.Id,
+            Quantity         = 20,
+            Product2Id = panel.Id,
+            TotalPrice       = 20 * panelEntry.UnitPrice
+        );
+        insert oli;
+
+        //create opportunity line item.
+        OpportunityLineItem oli2 = new OpportunityLineItem(
+            OpportunityId    = myOpp.Id,
+            Quantity         = 20,
+            Product2Id       = firstInverter.Id,
+            TotalPrice       = 20 * inverterEntry.UnitPrice
+        );
+        insert oli2;
+
+        OpportunityLineItem inverter = [
+            SELECT Quantity
+                FROM OpportunityLineItem
+                WHERE OpportunityId = :oli.OpportunityId
+                AND Id = :oli2.Id
+                LIMIT 1
+        ];
+
+        System.assertEquals(5, inverter.Quantity);
+    }
+    @isTest static void addInverterTwoWithPanelFour() {
+        // create an opportunity
+        Opportunity myOpp  = new Opportunity();
+        myOpp.Name         = 'Test';
+        myOpp.StageName    = 'Closed Won';
+        myOpp.CloseDate    = Date.today();
+        myOpp.Pricebook2Id = Test.getStandardPricebookId();
+        insert myOpp;
+
+        Id pricebookId = Test.getStandardPricebookId();
+
+        //Create panel
+        Product2 panel = new Product2(
+            Name        = 'Eagle 60HM G2',
+            ProductCode = 'Eagle 60HM G2',
             isActive    = true
         );
         insert panel;
